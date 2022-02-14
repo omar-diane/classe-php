@@ -1,198 +1,185 @@
-<!DOCTYPE html>
- <html lang="fr">
- <head>
-     <meta charset="UTF-8">
-     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>User</title>
- </head>
- <body>
-     <main>
-     <?php
+<?php
 
-class user {
-    private $id;
-    public $login;
-    public $email;
-    public $firstname;
-    public $lastname;
 
-    //Maintenant je crée les méthodes
-    public function __construct(){
-    //Connexion à la BDD
-        $this -> bdd = mysqli_connect("localhost", "root", "", "classes");
-        session_start();
-        $sql = mysqli_query($this -> bdd, "SELECT * FROM utilisateurs");
-        $this -> users = mysqli_fetch_all($sql);
-    }
+class user{
+    private $id ;
+    public $login ;
+    public $password;
+    public $email ;
+    public $firstname ;
+    public $lastname ;
+
     //REGISTER
-    public function register($login,$password,$email,$firstname,$lastname){ //add tests no same login
-         
-        foreach($this -> users as $user){
-          if ($login == $user[1]){
-            $stop = 1;
-          }
-        }
-        if($login == NULL || $password == NULL || $email == NULL || $firstname == NULL || $lastname == NULL){
-          $stop == 1;
-        } 
-         $stop = 0;
-        if($stop == 0){
-          $sql = mysqli_query($this->bdd,"INSERT INTO utilisateurs(login, password, email, firstname,lastname) VALUES ('$login', '$password', '$email', '$firstname','$lastname')");
-          
-          return "
-            <table>
-              <theader>
-                <th>Login</th>
-                <th>Password</th>
-                <th>Email</th>
-                <th>Firstname</th>
-                <th>Lastname</th>
-              </theader>
-              <tbody>
-                <td> $login </td>
-                <td> $password </td>
-                <td> $email </td>
-                <td> $firstname </td>
-                <td> $lastname </td>
-              </tbody>
-            </table>
-          ";
-        }
-        else{
-          return "error";
-        }
-      }
-    //CONNECT
-      public function connect($login,$password){
-          
-          foreach($this -> users as $user){
-              if ($login == $user[1] && $password == $user[2]){
-                  $_SESSION["connected"] = $login ;
-                  // fill attributes 
-                  $this -> login = $login;
-                  $this -> email = $user[3];
-                  $this -> firstname = $user[4];
-                  $this -> lastname = $user[5];
-                  // feedback
-                  return $this -> login . " Vous êtes connecté. </br>";
-              }
-          }
-      }
-    //DISCONNECT
-      public function disconnect(){
-        session_destroy();
-        $this -> login = "";
-      }
-    //DELETE
-      public function delete(){
-        $login = $this->login;
-        $sql = mysqli_query($this->bdd,"DELETE FROM `utilisateurs` WHERE `login` = '$login'");
-        session_destroy();
-        $this -> login = NULL;
-        $this -> email = NULL;
-        $this -> firstname = NULL;
-        $this -> lastname = NULL;
-        return $login . " Utilisateur supprimé";
-      }
-    //UPDATE
-      public function update($login,$password,$email,$firstname,$lastname){
-        foreach($this -> users as $user){
-          if ($login == $user[1]){
-            $stop = 1;
-          }
-        }
-        if($login == NULL || $password == NULL || $email == NULL || $firstname == NULL || $lastname == NULL){
-          $stop == 1;
-        } 
-        $stop = 0; 
-        if ($stop == 0 && isset($_SESSION["connected"])){
-          $login = $this->login;
-          $sql = mysqli_query($this->bdd,"UPDATE `utilisateurs` SET login = '$login', password = '$password', email = '$email', firstname = '$firstname',lastname = '$firstname' WHERE login = '$log'");
-          $this -> login = $login;
-          $this -> email = $email;
-          $this -> firstname = $firstname;
-          $this -> lastname = $lastname;
-          return $log . " Utilisateur ajouté";
-        }
-        else{
-          return "error";
-        }
-      }
+public function register($login, $password, $email, $firstname, $lastname){
     
-    //ISCONNECTED
-      public function isConnected(){
-        return isset($_SESSION["connected"]);
-      }
-    //GETALLINFOS
-      public function getAllInfos(){
-        return "
-        <table>
-          <theader>
-            <th>Login</th>
-            <th>Email</th>
-            <th>Firstname</th>
-            <th>Lastname</th>
-          </theader>
-          <tbody>
-            <td> $this->login </td>
-            <td> $this->email </td>
-            <td> $this->firstname </td>
-            <td> $this->lastname </td>
-          </tbody>
-        </table>
-      ";
-      }
-      //GETLOGIN
-      public function getLogin(){
-        return $this->login;
-      }
-      //GETEMAIL
-      public function getEmail(){
-        return $this->email;
-      }
-      //GETFIRSTNAME
-      public function getFirstname(){
-        return $this->firstname;
-      }
-      //GETLASTNAME
-      public function getLastname(){
-        return $this->lastname;
-      }
+
+    $bdd = mysqli_connect("localhost", "root", "", "classes");
+    $insertquery="SELECT * FROM utilisateurs WHERE login = '".$login."';";
+    $query = mysqli_query($bdd, $insertquery); 
+    $row =  mysqli_num_rows($query);
+
+    if($row == 0) {
+        $insertquery= "INSERT INTO utilisateurs (login, password, email, firstname, lastname) VALUES('" .$login. "', '" .$password. "', '" .$email. "', '" .$firstname. "', '" .$lastname. "');";
+        $query =  mysqli_query($bdd, $insertquery); 
+        return [$login, $password, $email, $firstname, $lastname];
     }
-      
-    
-      $user = new User();
-    
-      //_________Register _________
-         echo $user->register("Omar","123","omar123@gmail.com","Omar","DIANE");
-    
-      //_________Connect _________
-        echo $user->connect("Omar","D");
-    
-      //_________Delete _________
-         echo $user->delete();
-    
-      //_________Update _________
-         echo $user->update("Jun","O","O","O","O");
-    
-      //_________isConnected _________
-         echo $user->isConnected();
-    
-      //_________getAllInfos _________
-         echo $user->getAllInfos();
-    
-      //_________GetLogin _________
-         echo $user->getLogin();
-    
-      //_________GetFirstname _________
-         echo $user->getFirstname();
-    
-      //_________GetLastname _________
-         echo $user->getLastname();
-    
-      ?>
-     </main>
-     
- </body>
- </html>
+
+} 
+
+
+
+
+//CONNECT
+public function connect($login, $password){
+   
+    $bdd = mysqli_connect("localhost", "root", "", "classes");
+    $requete="SELECT * FROM utilisateurs WHERE login = '".$login."' AND password= '".$password."'";
+    $query = mysqli_query($bdd, $requete);
+    $row =  mysqli_num_rows($query);
+
+        if($row){
+            
+              $user = mysqli_fetch_assoc($query);
+
+              $this->id = $user['id'];
+              $this->login = $user['login'];
+              $this->password = $user['password'];
+              $this->email = $user['email'];
+              $this->firstname = $user['firstname'];
+              $this->lastname = $user['lastname'];
+              return true;
+            }
+            
+            else
+            {   
+                  return false;
+            }
+    }
+
+
+
+
+//DISCONNECT
+public function disconnect(){
+  
+    if (isset($this->id)) { 
+
+        $this->id = NULL;
+        $this->login = NULL;
+        $this->password = NULL;
+        $this->email = NULL;
+        $this->firstname = NULL;
+        $this->lastname = NULL; 
+
+    }
+
+    return true;
+
+}
+
+
+//DELETE
+public function delete(){
+
+    $bdd = mysqli_connect("localhost", "root", "", "classes");
+    $requete="DELETE FROM `utilisateurs` WHERE `id` = '".$this->id."';";
+    $query = mysqli_query($bdd, $requete);
+
+    return $query;
+}
+
+
+//UPDATE
+public function update($login, $password, $email, $firstname, $lastname){
+
+    $bdd = mysqli_connect("localhost", "root", "", "classes");    
+    $requete = "UPDATE utilisateurs SET login = '".$login."', password = '".$password."', email = '".$email."', firstname = '".$firstname."', lastname = '".$lastname."' WHERE id ='".$this->id."' ";
+    $query = mysqli_query($bdd, $requete);
+
+    return $query;
+
+}
+
+
+//ISCONNECTED
+public function isConnected(){
+if (isset($this->id)){
+    return 1;
+}
+else{
+    return 0;
+}
+
+}
+
+//GETALLINFOS
+public function getAllInfos(){
+    return $this;
+}
+
+
+//GETLOGIN
+public function getLogin(){
+    return $this->login;
+}
+
+
+
+//GETEMAIL
+public function getEmail(){
+    return $this->email;
+}
+
+
+
+//GETFIRSTNAME
+public function getFirstname(){
+    return $this->firstname;
+}
+
+
+
+//GETLASTNAME
+public function getLastname(){
+    return $this->lastname;
+}
+
+
+}
+
+
+
+
+$omar = new user('omar', 'omar', 'omar@gmail.com', 'omar', 'omar');
+$omar->register('omar', 'rico', 'omar@gmail.com', 'omar', 'omar');
+echo '<pre>';
+
+var_dump($omar->connect('omar', 'omar'));
+echo '<pre>';
+
+var_dump($omar->isConnected());
+echo '<pre>';
+
+var_dump($omar->getAllInfos());
+echo '<pre>';
+
+var_dump($omar->getLogin());
+echo '<pre>';
+
+var_dump($omar->getEmail());
+echo '<pre>';
+
+var_dump($omar->getFirstname());
+echo '<pre>';
+
+var_dump($omar->getLastname());
+echo '<pre>';
+
+var_dump($omar->update('omar', 'omar', 'omar@gmail.com', 'omar', 'omar'));
+echo '<pre>';
+
+var_dump($omar);
+echo '<pre>';
+
+
+?>
